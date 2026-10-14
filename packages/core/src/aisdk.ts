@@ -132,6 +132,7 @@ function prepareOptions(model: RuntimeInfo, pkg: string) {
   delete options.headerTimeout
   delete options.chunkTimeout
   delete options.compaction
+  delete options.overflowPatterns
   delete options.transport
   options.fetch = async (input: Parameters<typeof fetch>[0], init?: RequestInit) => {
     const opts = { ...(init ?? {}) }

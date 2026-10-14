@@ -120,6 +120,8 @@ export interface Resolved {
   readonly limit: Info["limit"]
   /** Model policy overrides the provider policy; omitted means summary compaction. */
   readonly compaction?: Provider.Compaction
+  /** Extra patterns that mark a provider rejection as a context overflow, from provider or model settings. */
+  readonly overflowPatterns?: ReadonlyArray<RegExp>
   /** Provider transport policy; omitted means HTTP. */
   readonly transport?: Provider.Transport
   /** Milliseconds without streamed data before a WebSocket exchange fails; `false` disables the limit. */
@@ -404,6 +406,7 @@ export const layer = Layer.effect(
         cost: selected.cost,
         limit: selected.limit,
         compaction: runtimeInfo.settings?.compaction,
+        overflowPatterns: Provider.overflowPatterns(runtimeInfo.settings),
         transport: provider?.settings?.transport,
         chunkTimeout: Provider.timeout(provider?.settings?.chunkTimeout),
       }

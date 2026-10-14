@@ -175,7 +175,7 @@ const announceSwitch = Effect.fn(function* (credentialID: Credential.ID) {
   yield* bus.publish(Credential.Event.Switched, { integrationID: azureID, credentialID }, { global: true })
 })
 
-const seedProvider = (settings?: Provider.Settings) =>
+const seedProvider = (settings?: Provider.MutableInfo["settings"]) =>
   Effect.gen(function* () {
     const catalog = yield* Provider.Service
     yield* catalog.transform((editor) => {
@@ -276,7 +276,6 @@ describe("AzurePlugin connecting", () => {
       ])
     }),
   )
-
 })
 
 describe("AzurePlugin startup", () => {

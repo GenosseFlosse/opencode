@@ -211,6 +211,7 @@ const makeRunnerState = (compaction?: SessionRunnerModel.Resolved["compaction"])
   return {
     currentModel: model,
     compaction,
+    overflowPatterns: undefined as SessionRunnerModel.Resolved["overflowPatterns"],
     modelResolveHook: resolvesModel,
     systemBaseline: "Initial context",
     systemRemoved: false,
@@ -331,6 +332,7 @@ const layer = Layer.unwrap(
               limit: modelLimits.get(String(selected.id)) ?? defaultModelLimit,
               variant: session.model?.variant,
               compaction: state.compaction,
+              overflowPatterns: state.overflowPatterns,
             })
           }),
         ),
@@ -3276,6 +3278,36 @@ describe("SessionRunnerLLM", () => {
     ])
     yield* replaySessionProjection(sessionID)
     expect(yield* s.context).toMatchObject([{ type: "compaction" }, { type: "assistant", finish: "stop" }])
+  })
+
+  scenario("recovers from a custom overflow message that matches a configured pattern", function* (s) {
+    yield* setupOverflowRecovery(s)
+    s.overflowPatterns = [/input is too long for the selected model/i]
+    yield* s.llm.push(
+      [
+        LLMEvent.stepStart({ index: 0 }),
+        LLMEvent.providerError({ message: "The input is too long for the selected model." }),
+      ],
+      TestLLM.text("## Objective\n- Recover custom overflow", "text-summary"),
+      TestLLM.text("Recovered", "text-final"),
+    )
+    yield* s.runPrompt("Continue")
+
+    expect(s.requests).toHaveLength(3)
+    expect(yield* s.context).toMatchObject([
+      { type: "compaction", summary: "## Objective\n- Recover custom overflow" },
+      { type: "assistant", finish: "stop" },
+    ])
+  })
+
+  scenario("does not recover a custom overflow message without a configured pattern", function* (s) {
+    yield* setupOverflowRecovery(s)
+    yield* s.llm.push([
+      LLMEvent.stepStart({ index: 0 }),
+      LLMEvent.providerError({ message: "The input is too long for the selected model." }),
+    ])
+    expect((yield* s.resume.pipe(Effect.flip)).message).toBe("The input is too long for the selected model.")
+    expect(s.requests).toHaveLength(1)
   })
 
   scenario("refreshes preparation after overflow compaction without promoting new input", function* (s) {

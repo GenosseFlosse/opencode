@@ -153,7 +153,16 @@ export const loadPackage = Effect.fn("Provider.loadPackage")(function* (input: s
 })
 
 /** opencode settings consumed in Core; native packages never receive them. */
-const CORE_KEYS = ["chunkTimeout", "compaction", "encoding", "fetch", "headerTimeout", "timeout", "transport"] as const
+const CORE_KEYS = [
+  "chunkTimeout",
+  "compaction",
+  "encoding",
+  "fetch",
+  "headerTimeout",
+  "overflowPatterns",
+  "timeout",
+  "transport",
+] as const
 const PROVIDER_ONLY_KEYS = ["chunkTimeout", "headerTimeout", "timeout", "transport"] as const
 
 export function nativeSettings(settings: Settings): Settings {
@@ -188,6 +197,17 @@ export function timeouts(settings: Readonly<Record<string, unknown>>) {
     headerTimeout: timeout(settings.headerTimeout) ?? DEFAULT_TIMEOUT_MS,
     chunkTimeout: timeout(settings.chunkTimeout) ?? DEFAULT_CHUNK_TIMEOUT_MS,
   }
+}
+
+const compilePattern = Option.liftThrowable((source: string) => new RegExp(source, "i"))
+const decodeOverflowPatterns = Schema.decodeUnknownOption(Schema.Array(Schema.String))
+
+/** Case-insensitive context-overflow patterns from provider or model settings; invalid values are dropped. */
+export function overflowPatterns(settings: Readonly<Record<string, unknown>> | undefined) {
+  const patterns = Option.getOrElse(decodeOverflowPatterns(settings?.overflowPatterns), () => []).flatMap((source) =>
+    Option.toArray(compilePattern(source)),
+  )
+  return patterns.length === 0 ? undefined : patterns
 }
 
 const decodeEncoding = Schema.decodeUnknownOption(Provider.Encoding)

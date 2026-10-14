@@ -51,6 +51,7 @@ export const resolved = (
     readonly cost: Model.Info["cost"]
     readonly limit: Model.Info["limit"]
     readonly compaction?: Provider.Compaction
+    readonly overflowPatterns?: ReadonlyArray<RegExp>
     readonly transport?: Provider.Transport
   },
 ): Resolved => ({
@@ -64,6 +65,7 @@ export const resolved = (
   cost: options.cost,
   limit: options.limit,
   compaction: options.compaction,
+  overflowPatterns: options.overflowPatterns,
   transport: options.transport,
 })
 

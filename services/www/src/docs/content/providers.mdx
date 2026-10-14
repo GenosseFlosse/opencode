@@ -157,6 +157,26 @@ WebSocket transport, `chunkTimeout` bounds the gap between frames instead and de
 A request that exceeds either limit fails with a transport error. OpenCode retries a timed-out request up to three
 times before giving up.
 
+## Context overflow errors
+
+OpenCode compacts the session and retries when a provider rejects a request as too long. It recognizes the wording
+of common providers. A custom provider that words the error differently needs `settings.overflowPatterns`: a list
+of regular expressions, matched case-insensitively against the error message and response body of client (4xx)
+errors. Set it on a provider or model; the most specific value wins. Invalid expressions are ignored.
+
+```jsonc title="opencode.jsonc"
+{
+  "$schema": "https://opencode.ai/config.json",
+  "providers": {
+    "my-gateway": {
+      "settings": {
+        "overflowPatterns": ["input is too long for the selected model"],
+      },
+    },
+  },
+}
+```
+
 ## Request encoding
 
 `settings.encoding` compresses HTTP request bodies with `"zstd"` or `"gzip"`, or sends plain JSON with `"none"`. Set it

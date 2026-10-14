@@ -432,7 +432,7 @@ export const layer = Layer.effect(
           continue
         }
 
-        if (tooLarge || isContextOverflowFailure(cause)) {
+        if (tooLarge || isContextOverflowFailure(cause, context.model.overflowPatterns)) {
           const step = SHRINK_STEPS[rejections]
           if (step === undefined) return yield* Effect.fail<Failure>({ error })
           rejected ??= estimateRequest(request)

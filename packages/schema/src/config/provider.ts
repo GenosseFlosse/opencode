@@ -13,6 +13,7 @@ export const Settings = Schema.StructWithRest(
     headerTimeout: Schema.Union([Schema.Finite, Schema.Literal(false)]).pipe(optional),
     chunkTimeout: Schema.Union([Schema.Finite, Schema.Literal(false)]).pipe(optional),
     compaction: Provider.Compaction.pipe(optional),
+    overflowPatterns: Schema.Array(Schema.String).pipe(optional),
     transport: Provider.Transport.pipe(optional),
     encoding: Provider.Encoding.pipe(optional),
   }),

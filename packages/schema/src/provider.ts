@@ -56,6 +56,8 @@ export const Settings = Schema.StructWithRest(
     headerTimeout: Schema.Union([Schema.Finite, Schema.Literal(false)]).pipe(optional),
     chunkTimeout: Schema.Union([Schema.Finite, Schema.Literal(false)]).pipe(optional),
     compaction: Compaction.pipe(optional),
+    /** Extra regular expressions (case-insensitive) that mark a provider rejection as a context overflow. */
+    overflowPatterns: Schema.Array(Schema.String).pipe(optional),
     transport: Transport.pipe(optional),
     encoding: Encoding.pipe(optional),
   }),

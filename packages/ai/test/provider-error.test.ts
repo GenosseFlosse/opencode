@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test"
-import { isContextOverflow } from "../src/index.js"
+import { isContextOverflow, isContextOverflowFailure } from "../src/index.js"
+import { AIError, InvalidRequestError } from "../src/schema/index.js"
 import { classifyProviderFailure, providerErrorMessage } from "../src/provider-error.js"
 
 describe("provider error classification", () => {
@@ -41,6 +42,45 @@ describe("provider error classification", () => {
     expect(failures).toEqual(
       failures.map(() => expect.objectContaining({ _tag: "InvalidRequest", classification: "payload-too-large" })),
     )
+  })
+
+  describe("user-defined overflow patterns", () => {
+    const message = "The input is too long for the selected model."
+    const failure = (status?: number) =>
+      new AIError({
+        reason: classifyProviderFailure({
+          message,
+          status,
+          rawBody: JSON.stringify({ error: { message } }),
+          http: status === undefined ? undefined : { url: "https://gw.example/v1/responses", status, headers: {} },
+        }),
+      })
+
+    test("a custom gateway message is not a built-in overflow", () => {
+      expect(isContextOverflow(message)).toBe(false)
+      expect(isContextOverflowFailure(failure(400))).toBe(false)
+    })
+
+    test("matches a configured pattern on an HTTP 400, case-insensitively", () => {
+      expect(isContextOverflowFailure(failure(400), [/input is too long for the selected model/i])).toBe(true)
+    })
+
+    test("matches the raw body when the summary message does not carry the phrase", () => {
+      const reason = new InvalidRequestError({ message: "Bad request", body: `{"detail":"${message}"}` })
+      expect(isContextOverflowFailure(new AIError({ reason }), [/too long for the selected/i])).toBe(true)
+    })
+
+    test("matches a provider error event", () => {
+      const event = { type: "provider-error" as const, message }
+      expect(isContextOverflowFailure(event, [/too long for the selected/i])).toBe(true)
+      expect(isContextOverflowFailure(event, [/unrelated/i])).toBe(false)
+    })
+
+    test("does not apply to server-side or non-matching failures", () => {
+      expect(isContextOverflowFailure(failure(500), [/too long/i])).toBe(false)
+      expect(isContextOverflowFailure(failure(400), [/unrelated/i])).toBe(false)
+      expect(isContextOverflowFailure(new Error(message), [/too long/i])).toBe(false)
+    })
   })
 
   test("does not classify rate limits as context overflow", () => {

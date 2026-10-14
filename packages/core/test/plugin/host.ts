@@ -235,13 +235,15 @@ export function providerHost(providers: Provider.Interface): Plugin.Context["pro
   return {
     list: () => providers.available().pipe(Effect.map(located)),
     get: (input) =>
-      providers.get(Provider.ID.make(input.providerID)).pipe(
-        Effect.flatMap((provider) =>
-          provider === undefined
-            ? Effect.fail(new Error(`Provider not found: ${input.providerID}`))
-            : Effect.succeed(located(provider)),
+      providers
+        .get(Provider.ID.make(input.providerID))
+        .pipe(
+          Effect.flatMap((provider) =>
+            provider === undefined
+              ? Effect.fail(new Error(`Provider not found: ${input.providerID}`))
+              : Effect.succeed(located(provider)),
+          ),
         ),
-      ),
     reload: providers.reload,
     transform: (callback) =>
       providers.transform((editor) =>
@@ -482,11 +484,12 @@ function internalMethod(value: IntegrationMethod): Integration.Method {
 }
 
 function agentInfo(value: Agent.Info) {
+  const { overflowPatterns, ...settings } = value.request.settings
   return {
     ...value,
     model: value.model && { ...value.model },
     request: {
-      settings: { ...value.request.settings },
+      settings: { ...settings, ...(overflowPatterns && { overflowPatterns: [...overflowPatterns] }) },
       headers: { ...value.request.headers },
       body: { ...value.request.body },
     },

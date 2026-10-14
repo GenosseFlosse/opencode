@@ -3,6 +3,16 @@ import { Effect } from "effect"
 import { Provider } from "@opencode/core/provider"
 
 describe("Provider", () => {
+  test("compiles overflow patterns case-insensitively and drops invalid ones", () => {
+    const valid = Provider.overflowPatterns({ overflowPatterns: ["too long for the (selected|requested) model", "("] })
+    expect(valid).toHaveLength(1)
+    expect(valid?.[0]?.test("The input is TOO LONG for the selected model.")).toBe(true)
+    expect(Provider.overflowPatterns(undefined)).toBeUndefined()
+    expect(Provider.overflowPatterns({ overflowPatterns: ["("] })).toBeUndefined()
+    expect(Provider.overflowPatterns({ overflowPatterns: "nope" })).toBeUndefined()
+    expect(Provider.overflowPatterns({ overflowPatterns: ["ok", 7] })).toBeUndefined()
+  })
+
   test("loads bundled native provider entrypoints", async () => {
     const packages = [
       "@opencode/ai/providers/baseten",

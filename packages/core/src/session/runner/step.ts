@@ -112,7 +112,7 @@ export const make = Effect.gen(function* () {
           if (!publisher.hasStarted()) yield* Fiber.join(pendingStartSnapshot)
           if (
             LLMEvent.is.providerError(event) &&
-            isContextOverflowFailure(event) &&
+            isContextOverflowFailure(event, input.model.overflowPatterns) &&
             !publisher.record().outputStarted
           ) {
             overflowFailure = event
@@ -155,7 +155,7 @@ export const make = Effect.gen(function* () {
         const overflow = overflowFailure ?? streamFailure
         if (
           !publisher.record().outputStarted &&
-          isContextOverflowFailure(overflow) &&
+          isContextOverflowFailure(overflow, input.model.overflowPatterns) &&
           (yield* restore(input.recoverOverflow))
         ) {
           yield* Effect.logWarning("provider rejected the request as too long; compacting", {
@@ -187,7 +187,7 @@ export const make = Effect.gen(function* () {
         )
           return Outcome.RecoverFull()
         const retry =
-          llmFailure && llmError && !isContextOverflowFailure(llmFailure)
+          llmFailure && llmError && !isContextOverflowFailure(llmFailure, input.model.overflowPatterns)
             ? yield* restore(
                 input.retry(
                   llmFailure,

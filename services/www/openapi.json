@@ -14391,6 +14391,12 @@
           "compaction": {
             "$ref": "#/components/schemas/Provider.Compaction"
           },
+          "overflowPatterns": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "transport": {
             "$ref": "#/components/schemas/Provider.Transport"
           },
@@ -17890,6 +17896,12 @@
           },
           "compaction": {
             "$ref": "#/components/schemas/Provider.Compaction"
+          },
+          "overflowPatterns": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           },
           "transport": {
             "$ref": "#/components/schemas/Provider.Transport"

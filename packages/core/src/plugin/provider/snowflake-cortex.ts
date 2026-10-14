@@ -184,10 +184,11 @@ export const SnowflakeCortexPlugin = define({
     yield* ctx.provider.transform((providers) => {
       const item = providers.get(providerID)
       if (!item) return
-      const settings = { ...item.provider.settings, ...configured }
+      const { overflowPatterns, ...settings } = { ...item.provider.settings, ...configured }
       providers.update(providerID, (provider) => {
         provider.settings = {
           ...settings,
+          ...(overflowPatterns && { overflowPatterns: [...overflowPatterns] }),
           baseURL: endpoint(settings.baseURL, account.value),
           ...(typeof settings.token === "string" ? { apiKey: settings.token } : {}),
         }

@@ -52,7 +52,7 @@ const noAmbientAWS = {
   AWS_DEFAULT_REGION: undefined,
 }
 
-const seedBedrock = Effect.fn(function* (settings?: Provider.Settings) {
+const seedBedrock = Effect.fn(function* (settings?: Provider.MutableInfo["settings"]) {
   const catalog = yield* Provider.Service
   yield* catalog.transform((catalog) => {
     catalog.update(Provider.ID.amazonBedrock, (item) => {

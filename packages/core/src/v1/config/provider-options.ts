@@ -41,6 +41,7 @@ const COMPATIBLE_KEYS = new Set([
   "timeout",
   "chunkTimeout",
   "headerTimeout",
+  "overflowPatterns",
   "disabled",
   "reasoningEffort",
   "textVerbosity",

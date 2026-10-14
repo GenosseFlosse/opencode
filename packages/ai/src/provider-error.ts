@@ -69,10 +69,26 @@ export const isContextOverflow = (message: string) =>
 
 export const isPayloadTooLarge = (message: string) => payloadPatterns.some((pattern) => pattern.test(message))
 
-export const isContextOverflowFailure = (failure: unknown) =>
-  failure instanceof AIError
-    ? failure.reason._tag === "InvalidRequest" && failure.reason.classification === "context-overflow"
-    : Schema.is(ProviderErrorEvent)(failure) && failure.classification === "context-overflow"
+/**
+ * Whether a failure was classified as a context overflow. Custom providers word this rejection in their own way, so
+ * `extraPatterns` (from provider settings) also flag a client-scoped failure whose message or body matches. The
+ * built-in exclusions do not apply to them: a pattern the user wrote is taken at its word.
+ */
+export const isContextOverflowFailure = (failure: unknown, extraPatterns: ReadonlyArray<RegExp> = []) => {
+  if (
+    failure instanceof AIError
+      ? failure.reason._tag === "InvalidRequest" && failure.reason.classification === "context-overflow"
+      : Schema.is(ProviderErrorEvent)(failure) && failure.classification === "context-overflow"
+  )
+    return true
+  if (extraPatterns.length === 0) return false
+  const status = failure instanceof AIError ? failure.reason.http?.status : undefined
+  if (status !== undefined && (status < 400 || status >= 500)) return false
+  const text = failure instanceof AIError ? [failure.reason.message, failure.reason.body] : [failureMessage(failure)]
+  return extraPatterns.some((pattern) => text.some((part) => part !== undefined && pattern.test(part)))
+}
+
+const failureMessage = (failure: unknown) => (Schema.is(ProviderErrorEvent)(failure) ? failure.message : undefined)
 
 /**
  * Whether a failed call may succeed when sent again: rate limits, provider-side failures, transport failures that did

@@ -395,6 +395,7 @@ Provider options can include `timeout`, `headerTimeout`, `chunkTimeout`, and `se
 - `headerTimeout` - Timeout in milliseconds to wait for response headers (default: 300000, or 5 minutes). This timer stops once headers arrive and does not limit the streamed response body. Set to `false` to disable.
 - `chunkTimeout` - Timeout in milliseconds between streamed response chunks (default: 900000, or 15 minutes). If no chunk arrives in time, the request is aborted. Set to `false` to disable.
 - `setCacheKey` - Ensure a cache key is always set for designated provider.
+- `overflowPatterns` - List of regular expressions (case-insensitive) matched against a provider's error message or response body. A match marks a client error as "context too long", so OpenCode compacts the session and retries instead of showing the error. Use it when a custom provider words this error differently than the built-in patterns recognize, e.g. `["input is too long for the selected model"]`. Invalid expressions are ignored.
 
 You can also configure [local models](/docs/models#local). [Learn more](/docs/models).
 

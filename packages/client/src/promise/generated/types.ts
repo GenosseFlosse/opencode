@@ -333,6 +333,7 @@ export type ProviderSettings = {
   headerTimeout?: number | false
   chunkTimeout?: number | false
   compaction?: ProviderCompaction
+  overflowPatterns?: Array<string>
   transport?: ProviderTransport
   encoding?: ProviderEncoding
 } & { [x: string]: any }
@@ -344,6 +345,7 @@ export type ConfigProviderSettings = {
   headerTimeout?: number | false
   chunkTimeout?: number | false
   compaction?: ProviderCompaction
+  overflowPatterns?: Array<string>
   transport?: ProviderTransport
   encoding?: ProviderEncoding
 } & { [x: string]: JsonValue | null }
